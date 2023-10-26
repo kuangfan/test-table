@@ -3,12 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
+    "dev": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@tiptap/extension-table": "^2.1.12",
+    "@tiptap/extension-table-cell": "^2.1.12",
+    "@tiptap/extension-table-header": "^2.1.12",
+    "@tiptap/extension-table-row": "^2.1.12",
+    "@tiptap/pm": "^2.1.12",
+    "@tiptap/starter-kit": "^2.1.12",
+    "@tiptap/vue-3": "^2.1.12",
     "core-js": "^3.8.3",
+    "tdesign-vue-next": "^1.6.5",
     "vue": "^3.2.13",
     "vue-router": "^4.0.3",
     "vuex": "^4.0.0"

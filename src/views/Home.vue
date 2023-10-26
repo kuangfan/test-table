@@ -1,0 +1,16 @@
+<template>
+  <div class="home">
+    <tiptap />
+  </div>
+</template>
+
+<script>
+import Tiptap from '@/components/Tiptap.vue'
+
+export default {
+  name: 'App',
+  components: {
+    Tiptap
+  }
+}
+</script>
