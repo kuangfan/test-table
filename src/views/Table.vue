@@ -26,13 +26,45 @@
     </div>
     <div class="container">
       <editor-content :editor="editor" />
+      <div v-if="focused">
+        <div class="fixed-menu" @click="hanleMenuClick">
+          <div class="menu-item" @click="tableCellMerge">
+            <t-tooltip v-if="!isMerged" content="合并单元格">
+              <i class="iconfont icon-hebingdanyuange"></i>
+            </t-tooltip>
+            <t-tooltip v-else content="取消合并单元格">
+              <i class="iconfont icon-quxiaohebingdanyuange"></i>
+            </t-tooltip>
+          </div>
+          <div class="menu-item">
+            <t-tooltip content="插入列">
+              <i class="iconfont icon-charulie"></i>
+            </t-tooltip>
+          </div>
+          <div class="menu-item">
+            <t-tooltip content="插入行">
+              <i class="iconfont icon-charuhang"></i>
+            </t-tooltip>
+          </div>
+          <div class="menu-item">
+            <t-tooltip content="删除列">
+              <i class="iconfont icon-shanchulie"></i>
+            </t-tooltip>
+          </div>
+          <div class="menu-item">
+            <t-tooltip content="删除行">
+              <i class="iconfont icon-shanchuhang"></i>
+            </t-tooltip>
+          </div>
+        </div>
+      </div>
     </div>
     <button type="button" @click="console.log(editor.getJSON())">获取数据</button>
   </div>
 </template>
 
 <script setup>
-import { Popup as TPopup } from 'tdesign-vue-next'
+import { Popup as TPopup, Tooltip as TTooltip } from 'tdesign-vue-next'
 import { ref } from 'vue'
 import Table from '@tiptap/extension-table'
 import TableCell from '@tiptap/extension-table-cell'
@@ -42,6 +74,9 @@ import StarterKit from '@tiptap/starter-kit'
 import { Editor, EditorContent } from '@tiptap/vue-3'
 
 const editor = ref(null)
+const focused = ref(false)
+const blurTimer = ref(null)
+const tableData = ref(null)
 editor.value = new Editor({
   extensions: [
     StarterKit,
@@ -52,7 +87,21 @@ editor.value = new Editor({
     TableHeader,
     TableCell
   ],
-  content: ''
+  content: '',
+  onFocus ({ editor, event }) {
+    // The editor is focused.
+    console.log('onFocus', editor, event)
+    focused.value = true
+  },
+  onBlur ({ editor, event }) {
+    // The editor isn’t focused anymore.
+    console.log('onBlur', editor, event)
+    blurTimer.value = setTimeout(() => {
+      focused.value = false
+      isMerged.value = false
+      editor.commands.setContent(tableData.value)
+    }, 300)
+  }
 })
 
 const maxRow = 10
@@ -77,11 +126,11 @@ const onToggle = () => {
   visible.value = !visible.value
   if (visible.value) {
     const handleDomClick = (e) => {
+      console.log(e.target)
       const target = e.target && e.target.className
       const isBtn = target.includes('btn-create')
       const isCol = target.includes('col')
       if (isBtn || isCol) return
-      console.log(isCol)
       visible.value = false
       document.removeEventListener('click', handleDomClick)
     }
@@ -99,9 +148,8 @@ const createTable = (grid) => {
   const { rows, cols } = grid
   console.log(grid)
   visible.value = false
-  const tableData = generateTableData(rows, cols)
-  console.log(tableData)
-  editor.value.commands.setContent(tableData)
+  tableData.value = generateTableData(rows, cols)
+  editor.value.commands.setContent(tableData.value)
 }
 
 const generateTableData = (rows, cols) => {
@@ -134,6 +182,25 @@ const generateTableData = (rows, cols) => {
     }
   }
   return temp
+}
+
+const isMerged = ref(false)
+const hanleMenuClick = () => {
+  console.log('hanleMenuClick')
+  if (blurTimer.value) {
+    clearTimeout(blurTimer.value)
+    blurTimer.value = null
+  }
+  editor.value.chain().focus().run()
+}
+const tableCellMerge = () => {
+  console.log('isMerged', isMerged.value)
+  if (isMerged.value) {
+    editor.value.chain().splitCell().run()
+  } else {
+    editor.value.chain().mergeCells().run()
+  }
+  isMerged.value = !isMerged.value
 }
 </script>
 
@@ -176,7 +243,77 @@ const generateTableData = (rows, cols) => {
   margin: 100px auto 0;
   :deep(.tiptap table td),
   :deep(.tiptap table th){
-    border: 1px solid #f00;
+    border: 1px solid #bbbfc4;
+    // background-color: #eff0f1;
+  }
+  :deep(.ProseMirror){
+    &:focus-visible{
+      outline: none;
+    }
+  }
+  position: relative;
+}
+.fixed-menu{
+  display: flex;
+  padding: 4px;
+  background: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-shadow: 0 0 5px #f1f1f1;
+  position: absolute;
+  top: -40px;
+  left: 0;
+  .menu-item{
+    width: 26px;
+    height: 26px;
+    text-align: center;
+    line-height: 26px;
+    cursor: pointer;
+    i{
+      font-size: 20px;
+    }
+  }
+}
+.bubble-menu {
+  display: flex;
+  background-color: #0D0D0D;
+  padding: 0.2rem;
+  border-radius: 0.5rem;
+
+  button {
+    border: none;
+    background: none;
+    color: #FFF;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0 0.2rem;
+    opacity: 0.6;
+
+    &:hover,
+    &.is-active {
+      opacity: 1;
+    }
+  }
+}
+
+.floating-menu {
+  display: flex;
+  background-color: #0D0D0D10;
+  padding: 0.2rem;
+  border-radius: 0.5rem;
+
+  button {
+    border: none;
+    background: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0 0.2rem;
+    opacity: 0.6;
+
+    &:hover,
+    &.is-active {
+      opacity: 1;
+    }
   }
 }
 </style>
