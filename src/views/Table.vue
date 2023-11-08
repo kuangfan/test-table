@@ -24,7 +24,7 @@
         </template>
       </t-popup>
     </div>
-    <div class="container">
+    <div class="container" @mousedown="handleMouseDown" @mouseup="handleMouseUp">
       <editor-content :editor="editor" />
       <div v-if="focused">
         <div class="fixed-menu" @click="hanleMenuClick">
@@ -36,7 +36,7 @@
               <i class="iconfont icon-quxiaohebingdanyuange"></i>
             </t-tooltip>
           </div>
-          <div class="menu-item">
+          <div class="menu-item" @click="insertColumn">
             <t-tooltip content="插入列">
               <i class="iconfont icon-charulie"></i>
             </t-tooltip>
@@ -56,10 +56,15 @@
               <i class="iconfont icon-shanchuhang"></i>
             </t-tooltip>
           </div>
+          <div class="menu-item" @click="insertImage">
+            <t-tooltip content="插入图片">
+              <i class="iconfont icon-tupian"></i>
+            </t-tooltip>
+          </div>
         </div>
       </div>
     </div>
-    <button type="button" @click="console.log(editor.getJSON())">获取数据</button>
+    <button type="button" @click="console.log(JSON.stringify(editor.getJSON().content[0]))">获取数据</button>
   </div>
 </template>
 
@@ -71,6 +76,7 @@ import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import TableRow from '@tiptap/extension-table-row'
 import StarterKit from '@tiptap/starter-kit'
+import Image from '@tiptap/extension-image'
 import { Editor, EditorContent } from '@tiptap/vue-3'
 
 const editor = ref(null)
@@ -85,7 +91,8 @@ editor.value = new Editor({
     }),
     TableRow,
     TableHeader,
-    TableCell
+    TableCell,
+    Image
   ],
   content: '',
   onFocus ({ editor, event }) {
@@ -99,7 +106,8 @@ editor.value = new Editor({
     blurTimer.value = setTimeout(() => {
       focused.value = false
       isMerged.value = false
-      editor.commands.setContent(tableData.value)
+      // editor.commands.setContent(tableData.value)
+      // editor.deleteSelection()
     }, 300)
   }
 })
@@ -201,6 +209,29 @@ const tableCellMerge = () => {
     editor.value.chain().mergeCells().run()
   }
   isMerged.value = !isMerged.value
+}
+
+const insertColumn = () => {
+  setTimeout(() => {
+    const { selection, state } = editor.value
+    console.log(selection, state)
+  }, 500)
+}
+
+const insertImage = () => {
+  const url = window.prompt('URL')
+  if (url) {
+    editor.value.chain().focus().setImage({ src: url }).run()
+  }
+}
+
+const handleMouseDown = (e) => {
+  const downCol = e.target.parentNode
+  console.log(downCol, downCol.offsetTop, downCol.offsetLeft)
+}
+const handleMouseUp = (e) => {
+  const upCol = e.target.parentNode
+  console.log(upCol, upCol.offsetTop, upCol.offsetLeft)
 }
 </script>
 
